@@ -26,7 +26,7 @@ public class Scanner {
         keywords.put("super", SUPER);
         keywords.put("this", THIS);
         keywords.put("true", TRUE);
-        keywords. put("var", VAR);
+        keywords.put("var", VAR);
         keywords.put("while", WHILE);
     }
 
@@ -61,16 +61,36 @@ public class Scanner {
     private void scanToken() {
         char c = advance();
         switch (c) {
-            case '(': addToken(LEFT_PAREN); break;
-            case ')': addToken(RIGHT_PAREN); break;
-            case '{': addToken(LEFT_BRACE); break;
-            case '}': addToken(RIGHT_BRACE); break;
-            case ',': addToken(COMMA); break;
-            case '.': addToken(DOT); break;
-            case '-': addToken(MINUS); break;
-            case '+': addToken(PLUS); break;
-            case ';': addToken(SEMICOLON); break;
-            case '*': addToken(STAR); break;
+            case '(':
+                addToken(LEFT_PAREN);
+                break;
+            case ')':
+                addToken(RIGHT_PAREN);
+                break;
+            case '{':
+                addToken(LEFT_BRACE);
+                break;
+            case '}':
+                addToken(RIGHT_BRACE);
+                break;
+            case ',':
+                addToken(COMMA);
+                break;
+            case '.':
+                addToken(DOT);
+                break;
+            case '-':
+                addToken(MINUS);
+                break;
+            case '+':
+                addToken(PLUS);
+                break;
+            case ';':
+                addToken(SEMICOLON);
+                break;
+            case '*':
+                addToken(STAR);
+                break;
             case '!':
                 addToken(match('=') ? BANG_EQUAL : BANG);
                 break;
@@ -84,23 +104,8 @@ public class Scanner {
                 addToken(match('=') ? GREATER_EQUAL : GREATER);
                 break;
             case '/':
-                if (match('/')) {
-                    // A comment goes on until EOL
-                    while (peek() != '\n' && !isAtEnd()) advance();
-                } else if (match('*')) {
-                    while (peek() != '*' && peekNext() != '/' && !isAtEnd()) {
-                        if (peek() == '\n') line++;
-                        advance();
-                    }
-
-                    if (isAtEnd() || (peek() == '*' && peekNext() != '/')) {
-                        Lox.error(line, "Unterminated comment.");
-                        return;
-                    }
-
-                    advance();
-                    advance();
-                } else {
+                if (peek() == '/' || peek() == '*') comment();
+                else {
                     addToken(SLASH);
                 }
                 break;
@@ -114,7 +119,9 @@ public class Scanner {
                 line++;
                 break;
 
-            case '"': string(); break;
+            case '"':
+                string();
+                break;
 
             default:
                 if (isDigit(c)) {
@@ -152,6 +159,29 @@ public class Scanner {
 
         addToken(NUMBER,
                 Double.parseDouble(source.substring(start, current)));
+    }
+
+    private void comment() {
+        if (match('/')) {
+            // A comment goes on until EOL
+            while (peek() != '\n' && !isAtEnd()) advance();
+        } else if (match('*')) {
+            // Support for C-style block comments
+            while (peek() != '*' && peekNext() != '/' && !isAtEnd()) {
+                if (peek() == '\n') line++;
+                advance();
+            }
+
+            // Block comment needs to be terminated
+            if (isAtEnd() || (peek() == '*' && peekNext() != '/')) {
+                Lox.error(line, "Unterminated comment.");
+                return;
+            }
+
+            // Advance for both terminating characters, * and /
+            advance();
+            advance();
+        }
     }
 
     private void string() {
@@ -197,7 +227,7 @@ public class Scanner {
 
     private boolean isAlpha(char c) {
         return (c >= 'a' && c <= 'z') ||
-               (c >= 'A' && c <= 'Z') ||
+                (c >= 'A' && c <= 'Z') ||
                 c == '_';
     }
 
