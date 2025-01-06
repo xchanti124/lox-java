@@ -166,21 +166,30 @@ public class Scanner {
             // A comment goes on until EOL
             while (peek() != '\n' && !isAtEnd()) advance();
         } else if (match('*')) {
-            // Support for C-style block comments
-            while (peek() != '*' && peekNext() != '/' && !isAtEnd()) {
-                if (peek() == '\n') line++;
-                advance();
-            }
+            int nestedCommentCounter = 1;
 
-            // Block comment needs to be terminated
-            if (isAtEnd() || (peek() == '*' && peekNext() != '/')) {
-                Lox.error(line, "Unterminated comment.");
-                return;
-            }
+            while (true) {
+                if (peek() == '/' && peekNext() == '*') {
+                    advance();
+                    advance();
+                    nestedCommentCounter++;
+                } else if (peek() == '*' && peekNext() == '/')  {
+                    advance();
+                    advance();
+                    nestedCommentCounter--;
 
-            // Advance for both terminating characters, * and /
-            advance();
-            advance();
+                    if (nestedCommentCounter == 0) {
+                        break;
+                    }
+                } else {
+                    if (isAtEnd()) {
+                        Lox.error(line, "Unterminated comment.");
+                        return;
+                    }
+
+                    advance();
+                }
+            }
         }
     }
 
