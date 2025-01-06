@@ -87,6 +87,19 @@ public class Scanner {
                 if (match('/')) {
                     // A comment goes on until EOL
                     while (peek() != '\n' && !isAtEnd()) advance();
+                } else if (match('*')) {
+                    while (peek() != '*' && peekNext() != '/' && !isAtEnd()) {
+                        if (peek() == '\n') line++;
+                        advance();
+                    }
+
+                    if (isAtEnd() || (peek() == '*' && peekNext() != '/')) {
+                        Lox.error(line, "Unterminated comment.");
+                        return;
+                    }
+
+                    advance();
+                    advance();
                 } else {
                     addToken(SLASH);
                 }
